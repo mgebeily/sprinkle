@@ -1,0 +1,2 @@
+* Add fetch override in methods.
+* Add robustness against multiple starts / adding templates

@@ -1,0 +1,19 @@
+{
+  "name": "sprinkle",
+  "version": "0.0.1",
+  "description": "It's not a JavaScript framework, I promise.",
+  "main": "index.js",
+  "author": "Marc Gebeily",
+  "license": "MIT",
+  "dependencies": {
+    "dot": "^1.1.3",
+    "fletch-state": "^1.0.3"
+  },
+  "devDependencies": {
+    "esbuild": "^0.11.12"
+  },
+  "scripts": {
+    "start": "esbuild index.ts --bundle --outfile=dist/main.js",
+    "watch": "watchexec -i dist yarn start"
+  }
+}
