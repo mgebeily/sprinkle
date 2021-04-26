@@ -12,6 +12,7 @@ type MethodDefinitions = {
 
 type Options = {
   getDefaultMethods?: (state: FletchState) => MethodDefinitions,
+  dotTemplateSettings?: Partial<dot.TemplateSettings>,
 }
 
 type Template = {
@@ -64,7 +65,16 @@ const getDefaultMethods = (state: FletchState): MethodDefinitions => {
   }
 }
 
-const start = (options: Options = {}): SprinkleDocument => {
+export const start = (options: Options = {}): SprinkleDocument => {
+  dot.templateSettings.varname = "self";
+  if (options.dotTemplateSettings) {
+    const keys = Object.keys(options.dotTemplateSettings);
+    // This was a readonly setting. Assign the values here.
+    for(const key of keys) {
+      options.dotTemplateSettings[key] = options.dotTemplateSettings[key];
+    }
+  }
+
   // Define the default state.
   const store = createStore({});
 
@@ -113,7 +123,6 @@ const start = (options: Options = {}): SprinkleDocument => {
       const [trigger, event] = action.split(":");
       element.addEventListener(trigger, (e) => {
         const value = new Function("$methods", "$event", `return $methods.${event}`)(methods, e) as FletchAction;
-        console.log(value)
         if (value) {
           store.commit(value.path, value.value);
         }

@@ -17,21 +17,21 @@ In thinking about what my ideal complimentary JavaScript library would look like
 # Installation
 
 ```
-npm install sprinkle
+npm install sprinkle-dom
 
 or
 
-yarn add sprinkle
+yarn add sprinkle-dom
 ```
 
 Then import it:
 
 ```
 // CommonJS
-const sprinkle = require('sprinkle');
+const sprinkle = require('sprinkle-dom');
 
 // ES6 imports
-import sprinkle from 'sprinkle';
+import sprinkle from 'sprinkle-dom';
 ```
 
 # Usage
@@ -55,9 +55,17 @@ In the body of your HTML code, define a template with a `data-sprinkle-id`. This
 ```
 The above is rendered upon
 
-Internal state is managed by fletch and uses the same refresh criteria and accessor notation.
+Internal state is managed by fletch and uses the same refresh criteria and accessor notation. Summarized, state can be thought of as using paths to access objects. A state updates when its root path is changed with a `commit`.
 
-Summarized, state can be thought of as using paths to access objects. A state updates when its root path is changed with a `commit`.
+Templating is managed by doT.js. You can override the options for doT by passing the value `dotTemplateSettings`:
+
+```
+sprinkle.start({
+  dotTemplateSettings: {
+    varname: 'self',
+  }
+})
+```
 
 ### Event bindings
 
