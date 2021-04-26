@@ -6,13 +6,13 @@ Sprinkle is a tiny (~3KB gzipped) opinionated JavaScript library meant to be use
 # Motivation
 I've been keeping a really close eye on the awesome work being done at Basecamp towards simplifying the task of creating highly interactive web applications without an over abundance of JavaScript. The Basecamp team argues that the complexity put forth by a JavaScript-heavy front end is, in almost all instances, overkill, and can be covered by a good templating engine with a *sprinkle* of JavaScript.
 
-In my experience, while this is true for 95% of interactions in a typical application, the solutions posed to handle "atypical"? interactions (opening a modal, showing / hiding a field after another field is changed) still feel very clunky. The Basecamp team has iterated through many methods to address this gap: server-rendered JavaScript, UJS and remote forms, Turbolinks, StimulusJS and, most recently, Hotwire. While these solutions are all valid, I have the same set of issues with many of them: 
+In my experience, while this is true for 95% of interactions in a typical application, the solutions posed to handle "atypical" interactions (opening a modal, showing / hiding a field after another field is changed) still feel very clunky. The Basecamp team has iterated through many methods to address this gap: server-rendered JavaScript, UJS and remote forms, Turbolinks, StimulusJS and, most recently, Hotwire. While these solutions are all valid, I have the same set of issues with many of them: 
 
  - They can create a disconnect between the view and view logic.
  - They require you to structure your backend around front-end interactions
  - They require boilerplate JavaScript code to cover simple scenarios.
 
-In thinking about what my ideal complimentary JavaScript library would look like, I realized that barebones client-side templating with some common interactions provided by default would bump the above-mentioned 95% of interactions to 99.9%, without ever having to leave an HTML file. Sprinkle is my attempt at making this a reality.
+In thinking about what my ideal complementary JavaScript library would look like, I realized that barebones client-side templating with some common interactions provided by default would bump the above-mentioned 95% of interactions to 99.9%, without ever having to leave an HTML file. Sprinkle is my attempt at making this a reality.
 
 # Installation
 
@@ -40,20 +40,20 @@ import sprinkle from 'sprinkle-dom';
 
 When the page or content loads, call `sprinkle.start()`.
 
-The goal of Sprinkle is to write the least amount of JavaScript possible. Usage is mostly done through HTML.
+The goal of Sprinkle is to write the least amount of JavaScript possible. Usage is mostly through HTML.
 
 In the body of your HTML code, define a template with a `data-sprinkle-id`. This will be rendered when `start` is called, as well as upon state change. Initial state can optionally be defined in `data-sprinkle-state`.
 
 ```
 <template data-sprinkle-id="name-renderer" data-sprinkle-state="{ \"name\": \"value\" }">
   <div>
-    The current value of name is: {{= it.name }}
+    The current value of name is: {{= self.name }}
   </div>
 </template>
 
 // This renders the text "The current name value is: value"
 ```
-The above is rendered upon
+The above is rendered when `sprinkle.start()` is called. The template element is replaced by its contents.
 
 Internal state is managed by fletch and uses the same refresh criteria and accessor notation. Summarized, state can be thought of as using paths to access objects. A state updates when its root path is changed with a `commit`.
 
@@ -62,7 +62,7 @@ Templating is managed by doT.js. You can override the options for doT by passing
 ```
 sprinkle.start({
   dotTemplateSettings: {
-    varname: 'self',
+    varname: 'item',
   }
 })
 ```
@@ -74,7 +74,7 @@ You can bind events to actions by using the `data-sprinkle-actions` attribute. S
 ```
 <template data-sprinkle-id="name-renderer" data-sprinkle-state="{ \"name\": \"value\" }">
   <div>
-    The current value of name is: {{= it.name }}
+    The current value of name is: {{= self.name }}
   </div>
 </template>
 <button data-sprinkle-actions="click:set('name-renderer/name', 'a different value.')">
@@ -117,7 +117,7 @@ Sprinkle will listen to changes on any `form` with the `data-sprinkle-namespace`
 ```
 <template data-sprinkle-id="renderer" data-sprinkle-state="{ \"response\": \"test\" }">
   <div>
-    The response value is: {{= it.response }}
+    The response value is: {{= self.response }}
   </div>
 </template>
 <form data-sprinkle-namespace="renderer">

@@ -24,6 +24,6 @@
     "start": "esbuild index.ts --bundle --outfile=dist/index.js",
     "watch": "watchexec -i dist yarn start",
     "test": "jest",
-    "prepare": "tsc"
+    "prepare": "tsc && yarn start"
   }
 }
