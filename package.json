@@ -21,7 +21,7 @@
     "typescript": "^4.2.4"
   },
   "scripts": {
-    "start": "esbuild index.ts --bundle --outfile=dist/index.js",
+    "start": "esbuild index.ts --format=esm --bundle --outfile=dist/index.js",
     "watch": "watchexec -i dist yarn start",
     "test": "jest",
     "prepare": "tsc && yarn start"

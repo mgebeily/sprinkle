@@ -146,5 +146,3 @@ export const start = (options: Options = {}): SprinkleDocument => {
 
   return { store, templates };
 }
-
-(window as any).start = start;
