@@ -1,5 +1,4 @@
 import { createStore, FletchState } from "fletch-state"
-import * as dot from 'dot'
 
 type FletchAction = {
   path: string,
@@ -12,12 +11,13 @@ type MethodDefinitions = {
 
 type Options = {
   getDefaultMethods?: (state: FletchState) => MethodDefinitions,
-  dotTemplateSettings?: Partial<dot.TemplateSettings>,
+  openDelimiter: string,
+  closeDelimiter: string,
 }
 
 type Template = {
-  view: HTMLTemplateElement,
-  model: HTMLElement,
+  view: HTMLElement,
+  model: HTMLTemplateElement,
 }
 
 type Templates = {
@@ -27,6 +27,11 @@ type Templates = {
 type SprinkleDocument = {
   store: FletchState,
   templates: Templates,
+}
+
+const defaultOptions = {
+  openDelimiter: "{{",
+  closeDelimiter: "}}",
 }
 
 const getDefaultMethods = (state: FletchState): MethodDefinitions => {
@@ -65,15 +70,40 @@ const getDefaultMethods = (state: FletchState): MethodDefinitions => {
   }
 }
 
-export const start = (options: Options = {}): SprinkleDocument => {
-  dot.templateSettings.varname = "self";
-  if (options.dotTemplateSettings) {
-    const keys = Object.keys(options.dotTemplateSettings);
-    // This was a readonly setting. Assign the values here.
-    for(const key of keys) {
-      options.dotTemplateSettings[key] = options.dotTemplateSettings[key];
+const getTemplate = (methods: MethodDefinitions, element: HTMLElement, regex: RegExp) => {
+  return (state: any) => {
+    // Remove anything with IF
+    const conditionalElements = element.querySelectorAll("[data-sprinkle-if]");
+    for(const conditionalElement of conditionalElements) {
+      const isPresent = new Function("$state", `return !!(${conditionalElement.getAttribute("data-sprinkle-if")})`)(state);
+      if (!isPresent) {
+        conditionalElement.remove();
+      }
     }
+
+    // Iterate over anything with FOR
+    const repeatedElements = element.querySelectorAll("[data-sprinkle-for]");
+    for(const repeatedElement of repeatedElements) {
+      const iterator = new Function("$state", `return ${repeatedElement.getAttribute("data-sprinkle-for")}`)(state);
+      repeatedElement.removeAttribute("data-sprinkle-for")
+      const innerHTML = iterator.map((item: any) => {
+        return repeatedElement.outerHTML.replace(/{{(.*?)}}/g, (substring: string) => {
+          return new Function("$methods", "$state", "$item", `return ${substring.replace(/^{{(.*)}}$/, "$1")}`)(methods, state, item);
+        });
+      }).join("")
+      repeatedElement.innerHTML = innerHTML;
+    }
+
+    // Render the inside and the else
+    return element.innerHTML.replace(/{{(.*?)}}/g, (substring: string) => {
+      return new Function("$methods", "$state", `return ${substring.replace(/^{{(.*)}}$/, "$1")}`)(methods, state);
+    });
   }
+}
+
+export const start = (options: Options = defaultOptions): SprinkleDocument => {
+  // Get the regex for value interpolation
+  const regex = new RegExp(`^${options.openDelimiter}(.*?)${options.closeDelimiter}`);
 
   // Define the default state.
   const store = createStore({});
@@ -99,8 +129,9 @@ export const start = (options: Options = {}): SprinkleDocument => {
   for(const element of elements) {
     const id = element.getAttribute("data-sprinkle-id");
     const path = element.getAttribute("data-sprinkle-namespace") || id;
-    const getHTML = dot.template(element.innerHTML);
     const compiledElement = document.createElement("div")
+    compiledElement.innerHTML = element.innerHTML;
+    const getHTML = getTemplate(methods, compiledElement, regex);
     compiledElement.innerHTML = getHTML(store.retrieve(path))
     element.replaceWith(compiledElement)
 
@@ -109,8 +140,8 @@ export const start = (options: Options = {}): SprinkleDocument => {
     });
 
     templates[id] = {
-      view: element,
-      model: compiledElement
+      view: compiledElement,
+      model: element
     }
   }
 
