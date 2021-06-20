@@ -47,7 +47,7 @@ In the body of your HTML code, define a template with a `data-sprinkle-id`. This
 ```
 <template data-sprinkle-id="name-renderer" data-sprinkle-state="{ \"name\": \"value\" }">
   <div>
-    The current value of name is: {{= self.name }}
+    The current value of name is: {{ $state.name }}
   </div>
 </template>
 
@@ -57,15 +57,6 @@ The above is rendered when `sprinkle.start()` is called. The template element is
 
 Internal state is managed by fletch and uses the same refresh criteria and accessor notation. Summarized, state can be thought of as using paths to access objects. A state updates when its root path is changed with a `commit`.
 
-Templating is managed by doT.js. You can override the options for doT by passing the value `dotTemplateSettings`:
-
-```
-sprinkle.start({
-  dotTemplateSettings: {
-    varname: 'item',
-  }
-})
-```
 
 ### Event bindings
 
@@ -74,7 +65,7 @@ You can bind events to actions by using the `data-sprinkle-actions` attribute. S
 ```
 <template data-sprinkle-id="name-renderer" data-sprinkle-state="{ \"name\": \"value\" }">
   <div>
-    The current value of name is: {{= self.name }}
+    The current value of name is: {{ $state.name }}
   </div>
 </template>
 <button data-sprinkle-actions="click:set('name-renderer/name', 'a different value.')">
@@ -117,7 +108,7 @@ Sprinkle will listen to changes on any `form` with the `data-sprinkle-namespace`
 ```
 <template data-sprinkle-id="renderer" data-sprinkle-state="{ \"response\": \"test\" }">
   <div>
-    The response value is: {{= self.response }}
+    The response value is: {{ $state.response }}
   </div>
 </template>
 <form data-sprinkle-namespace="renderer">

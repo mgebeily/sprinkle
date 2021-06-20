@@ -70,8 +70,8 @@ const getDefaultMethods = (state: FletchState): MethodDefinitions => {
   }
 }
 
-const getTemplate = (methods: MethodDefinitions, element: HTMLElement, regex: RegExp) => {
-  return (state: any) => {
+const getTemplate = (methods: MethodDefinitions, regex: RegExp) => {
+  return (state: any, element: HTMLElement) => {
     // Remove anything with IF
     const conditionalElements = element.querySelectorAll("[data-sprinkle-if]");
     for(const conditionalElement of conditionalElements) {
@@ -87,8 +87,8 @@ const getTemplate = (methods: MethodDefinitions, element: HTMLElement, regex: Re
       const iterator = new Function("$state", `return ${repeatedElement.getAttribute("data-sprinkle-for")}`)(state);
       repeatedElement.removeAttribute("data-sprinkle-for")
       const innerHTML = iterator.map((item: any) => {
-        return repeatedElement.outerHTML.replace(/{{(.*?)}}/g, (substring: string) => {
-          return new Function("$methods", "$state", "$item", `return ${substring.replace(/^{{(.*)}}$/, "$1")}`)(methods, state, item);
+        return repeatedElement.outerHTML.replace(regex, (substring: string) => {
+          return new Function("$methods", "$state", "$item", `return ${substring.replace(regex, "$1")}`)(methods, state, item);
         });
       }).join("")
       repeatedElement.innerHTML = innerHTML;
@@ -96,14 +96,14 @@ const getTemplate = (methods: MethodDefinitions, element: HTMLElement, regex: Re
 
     // Render the inside and the else
     return element.innerHTML.replace(/{{(.*?)}}/g, (substring: string) => {
-      return new Function("$methods", "$state", `return ${substring.replace(/^{{(.*)}}$/, "$1")}`)(methods, state);
+      return new Function("$methods", "$state", `return ${substring.replace(regex, "$1")}`)(methods, state);
     });
   }
 }
 
 export const start = (options: Options = defaultOptions): SprinkleDocument => {
   // Get the regex for value interpolation
-  const regex = new RegExp(`^${options.openDelimiter}(.*?)${options.closeDelimiter}`);
+  const regex = new RegExp(`^${options.openDelimiter}(.*?)${options.closeDelimiter}`, "gi");
 
   // Define the default state.
   const store = createStore({});
@@ -131,12 +131,14 @@ export const start = (options: Options = defaultOptions): SprinkleDocument => {
     const path = element.getAttribute("data-sprinkle-namespace") || id;
     const compiledElement = document.createElement("div")
     compiledElement.innerHTML = element.innerHTML;
-    const getHTML = getTemplate(methods, compiledElement, regex);
-    compiledElement.innerHTML = getHTML(store.retrieve(path))
+    const getHTML = getTemplate(methods, regex);
+    compiledElement.innerHTML = getHTML(store.retrieve(path), compiledElement)
     element.replaceWith(compiledElement)
 
     store.subscribe(path, () => {
-      compiledElement.innerHTML = getHTML(store.retrieve(path))
+      const replacingElement = document.createElement("div")
+      replacingElement.innerHTML = element.innerHTML;
+      compiledElement.innerHTML = getHTML(store.retrieve(path), replacingElement)
     });
 
     templates[id] = {
